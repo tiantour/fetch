@@ -20,6 +20,8 @@ var (
 )
 
 // Cmd fetch command
+// date 2016-12-31
+// author andy.jiang
 func Cmd(method, url string, args ...interface{}) ([]byte, error) {
 	method = strings.ToUpper(method)
 	if _, ok := methods[method]; !ok {
@@ -28,16 +30,20 @@ func Cmd(method, url string, args ...interface{}) ([]byte, error) {
 	return operate(method, url, args...)
 }
 
-// operate request
+// operate set request
+// date 2016-12-31
+// author andy.jiang
 func operate(method, url string, args ...interface{}) ([]byte, error) {
 	// get args
 	var body []byte
 	var header http.Header
 	for _, v := range args {
 		switch v.(type) {
-		case []byte: // set body
+		case []byte:
+			// set body
 			body = v.([]byte)
-		case http.Header: // set header
+		case http.Header:
+			// set header
 			header = v.(http.Header)
 		}
 	}
