@@ -2,53 +2,32 @@ package fetch
 
 import (
 	"bytes"
-	"errors"
 	"io/ioutil"
 	"net/http"
-	"strings"
 )
 
-var (
-	null    struct{}
-	methods = map[string]struct{}{
-		"GET":    null,
-		"POST":   null,
-		"PUT":    null,
-		"DELETE": null,
-		"PATCH":  null,
-	}
-)
-
-// Cmd fetch command
-func Cmd(method, url string, args ...interface{}) ([]byte, error) {
-	method = strings.ToUpper(method)
-	if _, ok := methods[method]; !ok {
-		return nil, errors.New("method not allowed")
-	}
-	return operate(method, url, args...)
+// Request request
+type Request struct {
+	Method string
+	URL    string
+	Body   []byte
+	Header http.Header
 }
 
-// operate request
-func operate(method, url string, args ...interface{}) ([]byte, error) {
-	// get args
-	var body []byte
-	var header http.Header
-	for _, v := range args {
-		switch v.(type) {
-		case []byte: // set body
-			body = v.([]byte)
-		case http.Header: // set header
-			header = v.(http.Header)
-		}
-	}
+// Cmd fetch command
+func Cmd(args Request) ([]byte, error) {
 	client := &http.Client{}
 	// set request
-	req, err := http.NewRequest(method, url, bytes.NewReader(body))
+	req, err := http.NewRequest(args.Method, args.URL,
+		bytes.NewReader(
+			args.Body,
+		),
+	)
 	if err != nil {
 		return nil, nil
 	}
 	req.Close = true
-	req.Header = header
+	req.Header = args.Header
 	// get response
 	resp, err := client.Do(req)
 	if err != nil {
