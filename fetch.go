@@ -18,11 +18,9 @@ type Request struct {
 func Cmd(args Request) ([]byte, error) {
 	client := &http.Client{}
 	// set request
-	req, err := http.NewRequest(args.Method, args.URL,
-		bytes.NewReader(
-			args.Body,
-		),
-	)
+	req, err := http.NewRequest(args.Method, args.URL, bytes.NewReader(
+		args.Body,
+	))
 	if err != nil {
 		return nil, nil
 	}
