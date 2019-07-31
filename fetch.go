@@ -23,7 +23,7 @@ type Request struct {
 func Cmd(args Request) ([]byte, error) {
 	client := &http.Client{}
 	// set tls
-	if args.Cert != "" && args.Key != "" {
+	if args.Cert != "" {
 		client = setTLS(args)
 	}
 	// set proxy
@@ -33,14 +33,14 @@ func Cmd(args Request) ([]byte, error) {
 	// set request
 	req, err := http.NewRequest(args.Method, args.URL, bytes.NewReader(args.Body))
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	req.Close = true
 	req.Header = args.Header
 	// get response
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	defer resp.Body.Close()
 	return ioutil.ReadAll(resp.Body)
