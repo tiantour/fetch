@@ -2,78 +2,54 @@ package fetch
 
 import (
 	"bytes"
-	"crypto/tls"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 )
 
-// Request request
-type Request struct {
+// Fetch Fetch
+type Fetch struct {
 	Method string
 	URL    string
 	Body   []byte
 	Header http.Header
-	Cert   string
-	Key    string
-	IP     string
 }
 
-// Cmd fetch command
-func Cmd(args Request) ([]byte, error) {
-	client := &http.Client{}
-	// set tls
-	if args.Cert != "" {
-		client = setTLS(args)
+// NewFetch new fetch
+func NewFetch(args *Request) *Fetch {
+	return &Fetch{
+		Method: args.Method,
+		URL:    args.URL,
+		Body:   args.Body,
+		Header: args.Header,
 	}
-	// set proxy
-	if args.IP != "" {
-		client = setProxy(args)
-	}
-	// set request
-	req, err := http.NewRequest(args.Method, args.URL, bytes.NewReader(args.Body))
+}
+
+// Do fetch do
+func (f *Fetch) Do(args *http.Client) ([]byte, error) {
+	request, err := f.Request()
 	if err != nil {
 		return nil, err
 	}
-	req.Close = true
-	req.Header = args.Header
-	// get response
-	resp, err := client.Do(req)
+	return f.Response(request, args)
+}
+
+// Request request
+func (f *Fetch) Request() (*http.Request, error) {
+	request, err := http.NewRequest(f.Method, f.URL, bytes.NewReader(f.Body))
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	return ioutil.ReadAll(resp.Body)
+	request.Close = true
+	request.Header = f.Header
+	return request, nil
 }
 
-// setTLS set http tls
-func setTLS(args Request) *http.Client {
-	cert, err := tls.LoadX509KeyPair(args.Cert, args.Key)
+// Response response
+func (f *Fetch) Response(args *http.Request, client *http.Client) ([]byte, error) {
+	response, err := client.Do(args)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	config := &tls.Config{
-		Certificates: []tls.Certificate{
-			cert,
-		},
-	}
-	transport := &http.Transport{
-		TLSClientConfig: config,
-	}
-	return &http.Client{
-		Transport: transport,
-	}
-}
-
-// setProxy set http proxy
-func setProxy(args Request) *http.Client {
-	proxy := func(*http.Request) (*url.URL, error) {
-		return url.Parse(args.IP)
-	}
-	transport := &http.Transport{
-		Proxy: proxy,
-	}
-	return &http.Client{
-		Transport: transport,
-	}
+	defer response.Body.Close()
+	return ioutil.ReadAll(response.Body)
 }
