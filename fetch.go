@@ -2,7 +2,6 @@ package fetch
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -24,15 +23,6 @@ func NewFetch(args *Request) *Fetch {
 	}
 }
 
-// Do fetch do
-func (f *Fetch) Do(args *http.Client) ([]byte, error) {
-	request, err := f.Request()
-	if err != nil {
-		return nil, err
-	}
-	return f.Response(request, args)
-}
-
 // Request request
 func (f *Fetch) Request() (*http.Request, error) {
 	request, err := http.NewRequest(f.Method, f.URL, bytes.NewReader(f.Body))
@@ -41,15 +31,17 @@ func (f *Fetch) Request() (*http.Request, error) {
 	}
 	request.Close = true
 	request.Header = f.Header
+
 	return request, nil
 }
 
 // Response response
-func (f *Fetch) Response(args *http.Request, client *http.Client) ([]byte, error) {
+func (f *Fetch) Response(args *http.Request, client *http.Client) (*http.Response, error) {
 	response, err := client.Do(args)
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
-	return ioutil.ReadAll(response.Body)
+
+	return response, nil
 }

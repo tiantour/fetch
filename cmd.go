@@ -1,6 +1,7 @@
 package fetch
 
 import (
+	"io/ioutil"
 	"net/http"
 )
 
@@ -17,6 +18,19 @@ type Request struct {
 
 // Cmd fetch command
 func Cmd(args *Request) ([]byte, error) {
+	response, err := Do(args)
+	if err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(response.Body)
+}
+
+// Do fetch do
+func Do(args *Request) (*http.Response, error) {
 	client := NewClient(args).Do()
-	return NewFetch(args).Do(client)
+	request, err := NewFetch(args).Request()
+	if err != nil {
+		return nil, err
+	}
+	return NewFetch(args).Response(request, client)
 }
