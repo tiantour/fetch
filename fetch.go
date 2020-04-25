@@ -41,7 +41,6 @@ func (f *Fetch) Response(args *http.Request, client *http.Client) (*http.Respons
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	return response, nil
 }
